@@ -119,6 +119,41 @@ aarch64_handle_signal_frame (unw_cursor_t *cursor)
   c->dwarf.loc[UNW_AARCH64_SP]  = DWARF_LOC (sc_addr + LINUX_SC_SP_OFF, 0);
   c->dwarf.loc[UNW_AARCH64_PC]  = DWARF_LOC (sc_addr + LINUX_SC_PC_OFF, 0);
   c->dwarf.loc[UNW_AARCH64_PSTATE]  = DWARF_LOC (sc_addr + LINUX_SC_PSTATE_OFF, 0);
+  c->dwarf.loc[UNW_AARCH64_V0]  = DWARF_LOC (&c->dwarf, LINUX_SC_V0_OFF);
+  c->dwarf.loc[UNW_AARCH64_V1]  = DWARF_LOC (&c->dwarf, LINUX_SC_V1_OFF);
+  c->dwarf.loc[UNW_AARCH64_V2]  = DWARF_LOC (&c->dwarf, LINUX_SC_V2_OFF);
+  c->dwarf.loc[UNW_AARCH64_V3]  = DWARF_LOC (&c->dwarf, LINUX_SC_V3_OFF);
+  c->dwarf.loc[UNW_AARCH64_V4]  = DWARF_LOC (&c->dwarf, LINUX_SC_V4_OFF);
+  c->dwarf.loc[UNW_AARCH64_V5]  = DWARF_LOC (&c->dwarf, LINUX_SC_V5_OFF);
+  c->dwarf.loc[UNW_AARCH64_V6]  = DWARF_LOC (&c->dwarf, LINUX_SC_V6_OFF);
+  c->dwarf.loc[UNW_AARCH64_V7]  = DWARF_LOC (&c->dwarf, LINUX_SC_V7_OFF);
+  c->dwarf.loc[UNW_AARCH64_V8]  = DWARF_LOC (&c->dwarf, LINUX_SC_V8_OFF);
+  c->dwarf.loc[UNW_AARCH64_V9]  = DWARF_LOC (&c->dwarf, LINUX_SC_V9_OFF);
+  c->dwarf.loc[UNW_AARCH64_V10] = DWARF_LOC (&c->dwarf, LINUX_SC_V10_OFF);
+  c->dwarf.loc[UNW_AARCH64_V11] = DWARF_LOC (&c->dwarf, LINUX_SC_V11_OFF);
+  c->dwarf.loc[UNW_AARCH64_V12] = DWARF_LOC (&c->dwarf, LINUX_SC_V12_OFF);
+  c->dwarf.loc[UNW_AARCH64_V13] = DWARF_LOC (&c->dwarf, LINUX_SC_V13_OFF);
+  c->dwarf.loc[UNW_AARCH64_V14] = DWARF_LOC (&c->dwarf, LINUX_SC_V14_OFF);
+  c->dwarf.loc[UNW_AARCH64_V15] = DWARF_LOC (&c->dwarf, LINUX_SC_V15_OFF);
+  c->dwarf.loc[UNW_AARCH64_V16] = DWARF_LOC (&c->dwarf, LINUX_SC_V16_OFF);
+  c->dwarf.loc[UNW_AARCH64_V17] = DWARF_LOC (&c->dwarf, LINUX_SC_V17_OFF);
+  c->dwarf.loc[UNW_AARCH64_V18] = DWARF_LOC (&c->dwarf, LINUX_SC_V18_OFF);
+  c->dwarf.loc[UNW_AARCH64_V19] = DWARF_LOC (&c->dwarf, LINUX_SC_V19_OFF);
+  c->dwarf.loc[UNW_AARCH64_V20] = DWARF_LOC (&c->dwarf, LINUX_SC_V20_OFF);
+  c->dwarf.loc[UNW_AARCH64_V21] = DWARF_LOC (&c->dwarf, LINUX_SC_V21_OFF);
+  c->dwarf.loc[UNW_AARCH64_V22] = DWARF_LOC (&c->dwarf, LINUX_SC_V22_OFF);
+  c->dwarf.loc[UNW_AARCH64_V23] = DWARF_LOC (&c->dwarf, LINUX_SC_V23_OFF);
+  c->dwarf.loc[UNW_AARCH64_V24] = DWARF_LOC (&c->dwarf, LINUX_SC_V24_OFF);
+  c->dwarf.loc[UNW_AARCH64_V25] = DWARF_LOC (&c->dwarf, LINUX_SC_V25_OFF);
+  c->dwarf.loc[UNW_AARCH64_V26] = DWARF_LOC (&c->dwarf, LINUX_SC_V26_OFF);
+  c->dwarf.loc[UNW_AARCH64_V27] = DWARF_LOC (&c->dwarf, LINUX_SC_V27_OFF);
+  c->dwarf.loc[UNW_AARCH64_V28] = DWARF_LOC (&c->dwarf, LINUX_SC_V28_OFF);
+  c->dwarf.loc[UNW_AARCH64_V29] = DWARF_LOC (&c->dwarf, LINUX_SC_V29_OFF);
+  c->dwarf.loc[UNW_AARCH64_V30] = DWARF_LOC (&c->dwarf, LINUX_SC_V30_OFF);
+  c->dwarf.loc[UNW_AARCH64_V31] = DWARF_LOC (&c->dwarf, LINUX_SC_V31_OFF);
+
+  for (i = UNW_AARCH64_PSTATE + 1; i < UNW_AARCH64_V0; ++i)
+    c->dwarf.loc[i] = DWARF_NULL_LOC;
 
   /* Set SP/CFA and PC/IP.  */
   dwarf_get (&c->dwarf, c->dwarf.loc[UNW_AARCH64_SP], &c->dwarf.cfa);

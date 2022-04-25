@@ -55,7 +55,7 @@ static int
 aarch64_handle_signal_frame (unw_cursor_t *cursor)
 {
   struct cursor *c = (struct cursor *) cursor;
-  int ret;
+  int i, ret;
   unw_word_t sc_addr, sp, sp_addr = c->dwarf.cfa;
   struct dwarf_loc sp_loc = DWARF_LOC (sp_addr, 0);
 
@@ -81,6 +81,9 @@ aarch64_handle_signal_frame (unw_cursor_t *cursor)
   c->sigcontext_addr = sc_addr;
   c->frame_info.frame_type = UNW_AARCH64_FRAME_SIGRETURN;
   c->frame_info.cfa_reg_offset = sc_addr - sp_addr;
+
+  for (i = 0; i < DWARF_NUM_PRESERVED_REGS; ++i)
+    c->dwarf.loc[i] = DWARF_NULL_LOC;
 
   /* Update the dwarf cursor.
      Set the location of the registers to the corresponding addresses of the
@@ -151,9 +154,6 @@ aarch64_handle_signal_frame (unw_cursor_t *cursor)
   c->dwarf.loc[UNW_AARCH64_V29] = DWARF_LOC (&c->dwarf, LINUX_SC_V29_OFF);
   c->dwarf.loc[UNW_AARCH64_V30] = DWARF_LOC (&c->dwarf, LINUX_SC_V30_OFF);
   c->dwarf.loc[UNW_AARCH64_V31] = DWARF_LOC (&c->dwarf, LINUX_SC_V31_OFF);
-
-  for (i = UNW_AARCH64_PSTATE + 1; i < UNW_AARCH64_V0; ++i)
-    c->dwarf.loc[i] = DWARF_NULL_LOC;
 
   /* Set SP/CFA and PC/IP.  */
   dwarf_get (&c->dwarf, c->dwarf.loc[UNW_AARCH64_SP], &c->dwarf.cfa);

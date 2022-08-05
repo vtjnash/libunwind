@@ -1,5 +1,6 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 AM_CFLAGS = -fno-optimize-sibling-calls
+COMMON_SO_LDFLAGS = $(LDFLAGS_NOSTARTFILES)
 
 LOG_DRIVER = $(SHELL) $(UNW_TESTDRIVER)
 
@@ -13,6 +14,7 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_PROGRAMS_arch =
 noinst_PROGRAMS_cdep =
 noinst_PROGRAMS_common =
+noinst_LTLIBRARIES =
 check_PROGRAMS_arch =
 check_PROGRAMS_cdep =
 check_PROGRAMS_common = test-proc-info test-static-link \
@@ -20,6 +22,7 @@ check_PROGRAMS_common = test-proc-info test-static-link \
 check_SCRIPTS_arch =
 check_SCRIPTS_cdep =
 check_SCRIPTS_common =	run-check-namespace
+check_LTLIBRARIES =
 
 if REMOTE_ONLY
 
@@ -95,7 +98,7 @@ perf: perf-startup Gperf-simple Lperf-simple Lperf-trace
 	@echo "########## Startup overhead:"
 	@$(srcdir)/perf-startup @arch@
 
-endif
+endif # REMOTE_ONLY
 
 check_PROGRAMS = $(check_PROGRAMS_common) $(check_PROGRAMS_cdep) \
 		 $(check_PROGRAMS_arch)
@@ -105,6 +108,7 @@ check_SCRIPTS =	$(check_SCRIPTS_common) $(check_SCRIPTS_cdep) \
 
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
 XFAIL_TESTS =
+SKIP_TESTS = test-mem
 
 if ARCH_IA64
  check_PROGRAMS_cdep += Gtest-dyn1 Ltest-dyn1
@@ -257,3 +261,8 @@ ppc64_test_altivec_LDADD = $(LIBUNWIND)
 
 Gx64_test_dwarf_expressions_LDADD = $(LIBUNWIND) $(LIBUNWIND_local)
 Lx64_test_dwarf_expressions_LDADD = $(LIBUNWIND_local)
+
+### setrlimit_disable library for LD_PRELOAD use:
+# we must include -rpath here, since otherwise libtool forgets to build this
+check_LTLIBRARIES += setrlimit_disable.la
+setrlimit_disable_la_LDFLAGS = $(COMMON_SO_LDFLAGS) -module -shared -avoid-version -rpath $(abs_builddir)

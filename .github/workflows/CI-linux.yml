@@ -65,9 +65,9 @@ jobs:
           set -x
           sudo bash -c 'echo core.%p.%p > /proc/sys/kernel/core_pattern'
           ulimit -c unlimited
-          make check -j32
+          make check -j8
       - name: Show Logs
-        if: ${{ failure() }}
+        if: ${{ always() }}
         run: |
           cat tests/test-suite.log 2>/dev/null
 
@@ -79,34 +79,29 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {target: arm,     toolchain: gcc-arm-linux-gnueabi,     host: arm-linux-gnueabi,      qemu: qemu-arm-static     }
-          - {target: armhf,   toolchain: gcc-arm-linux-gnueabihf,   host: arm-linux-gnueabihf,    qemu: qemu-arm-static     }
-          - {target: aarch64, toolchain: gcc-aarch64-linux-gnu,     host: aarch64-linux-gnu,      qemu: qemu-aarch64-static }
-          - {target: riscv64, toolchain: gcc-riscv64-linux-gnu,     host: riscv64-linux-gnu,      qemu: qemu-riscv64-static }
-          - {target: ppc,     toolchain: gcc-powerpc-linux-gnu,     host: powerpc-linux-gnu,      qemu: qemu-ppc-static     }
-          - {target: ppc64,   toolchain: gcc-powerpc64-linux-gnu,   host: powerpc64-linux-gnu,    qemu: qemu-ppc64-static   }
-          - {target: ppc64le, toolchain: gcc-powerpc64le-linux-gnu, host: powerpc64le-linux-gnu,  qemu: qemu-ppc64le-static }
-          - {target: s390x,   toolchain: gcc-s390x-linux-gnu,       host: s390x-linux-gnu,        qemu: qemu-s390x-static   }
-          - {target: mips,    toolchain: gcc-mips-linux-gnu,          host: mips-linux-gnu,         qemu: qemu-mips-static     }
-          - {target: mips64,  toolchain: gcc-mips64-linux-gnuabi64,   host: mips64-linux-gnuabi64,  qemu: qemu-mips64-static   }
-          - {target: mipsel,  toolchain: gcc-mipsel-linux-gnu,        host: mipsel-linux-gnu,       qemu: qemu-mipsel-static   }
-          - {target: mips64el,toolchain: gcc-mips64el-linux-gnuabi64, host: mips64el-linux-gnuabi64,qemu: qemu-mips64el-static }
+          - {target: arm,     toolchain: 'gcc-arm-linux-gnueabi g++-arm-linux-gnueabi',             host: arm-linux-gnueabi,      libc: libc6-arm-cross         }
+          - {target: armhf,   toolchain: 'gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf',         host: arm-linux-gnueabihf,    libc: libc6-arm-cross         }
+          - {target: aarch64, toolchain: 'gcc-aarch64-linux-gnu, g++-aarch64-linux-gnu,',           host: aarch64-linux-gnu,      libc: libc6-arm64-cross       }
+          - {target: riscv64, toolchain: 'gcc-riscv64-linux-gnu, g++-riscv64-linux-gnu,',           host: riscv64-linux-gnu,      libc: libc6-riscv64-cross     }
+          - {target: ppc,     toolchain: 'gcc-powerpc-linux-gnu, g++-powerpc-linux-gnu,',           host: powerpc-linux-gnu,      libc: libc6-ppc-cross         }
+          - {target: ppc64,   toolchain: 'gcc-powerpc64-linux-gnu, g++-powerpc64-linux-gnu,',       host: powerpc64-linux-gnu,    libc: libc6-ppc64-cross       }
+          - {target: ppc64le, toolchain: 'gcc-powerpc64le-linux-gnu, g++-powerpc64le-linux-gnu,',   host: powerpc64le-linux-gnu,  libc: libc6-ppc64le-cross     }
+          - {target: s390x,   toolchain: 'gcc-s390x-linux-gnu, g++-s390x-linux-gnu,',               host: s390x-linux-gnu,        libc: libc6-s390x-cross       }
+          - {target: mips,    toolchain: 'gcc-mips-linux-gnu, g++-mips-linux-gnu,',                 host: mips-linux-gnu,         libc: libc6-mips-cross        }
+          - {target: mips64,  toolchain: 'gcc-mips64-linux-gnuabi64, g++-mips64-linux-gnuabi64,',   host: mips64-linux-gnuabi64,  libc: libc6-mips64-cross      }
+          - {target: mipsel,  toolchain: 'gcc-mipsel-linux-gnu, g++-mipsel-linux-gnu,',             host: mipsel-linux-gnu,       libc: libc6-mipsel-cross      }
+          - {target: mips64el,toolchain: 'gcc-mips64el-linux-gnuabi64, g++-mips64el-linux-gnuabi64,',host: mips64el-linux-gnuabi64,libc: libc6-mips64el-cross   }
 
     steps:
       - uses: actions/checkout@v2
       - name: Install QEMU
-        # this ensure install latest qemu on ubuntu, apt get version is old
-        env:
-          QEMU_SRC: "http://archive.ubuntu.com/ubuntu/pool/universe/q/qemu"
-          QEMU_VER: "qemu-user-static_4\\.2-.*_amd64.deb$"
-        run: |
-          DEB=`curl -s $QEMU_SRC/ | grep -o -E 'href="([^"#]+)"' | cut -d'"' -f2 | grep $QEMU_VER | tail -1`
-          wget $QEMU_SRC/$DEB
-          sudo dpkg -i $DEB
-      - name: Install ${{ matrix.config.toolchain }}
         run: |
           sudo apt update
-          sudo apt install ${{ matrix.config.toolchain }} -y
+          sudo apt install qemu-user -y
+      - name: Install ${{ matrix.config.toolchain }}
+        run: |
+          sudo apt install ${{ matrix.config.toolchain }} ${{ matrix.config.libc }} -y
+          sudo ln -s /usr/${{ matrix.config.host }}/lib/ld-linux-${{ matrix.config.target }}.so.1 /lib/
       - name: Configure with ${{ matrix.config.cc }}
         run: |
           set -x
@@ -121,4 +116,10 @@ jobs:
           set -x
           sudo bash -c 'echo core.%p.%p > /proc/sys/kernel/core_pattern'
           ulimit -c unlimited
-          ${{ matrix.config.qemu }} make -j8 check
+          LOG_COMPILER='../libtool --mode=execute qemu-${{ matrix.config.target }} -E LD_PRELOAD=~+/.libs/setrlimit_disable.so'
+          TESTS_ENVIRONMENT='LD_LIBRARY_PATH=/usr/${{ matrix.config.target }}-linux-gnu/lib'
+          make -j8 check
+      - name: Show Logs
+        if: ${{ always() }}
+        run: |
+          cat tests/test-suite.log
